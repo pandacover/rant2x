@@ -13,9 +13,9 @@ X does **not** expose a public Articles compose deep link that prefills title an
 1. Copies `title` + blank line + `body` to the clipboard
 2. Opens [x.com/compose/articles](https://x.com/compose/articles) in a new tab
 
-Paste the first line into the Articles headline, then the rest into the body. X Articles typically requires a Premium account. If the popup is blocked, the app copies anyway and navigates the current tab.
+Hint in the UI: paste in the Articles editor, then publish on X. X Articles typically requires a Premium account. If the popup is blocked, the app copies anyway and navigates the current tab.
 
-A separate **Copy** button copies the same payload without opening X.
+A separate **Copy** button copies the same payload without opening X. There are no X developer credentials and no OAuth.
 
 ## Run locally
 

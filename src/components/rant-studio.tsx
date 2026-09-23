@@ -129,9 +129,7 @@ export function RantStudio() {
       const { copied, opened } = await copyAndOpenXArticles(text);
 
       if (copied && opened) {
-        toast.success(
-          "Copied and opened X Articles. Paste the title, then the body."
-        );
+        toast.success("Paste in the Articles editor, then publish on X.");
         return;
       }
       if (copied && !opened) {
@@ -276,8 +274,8 @@ export function RantStudio() {
             <div className="space-y-1">
               <CardTitle>Article draft</CardTitle>
               <CardDescription>
-                Edit freely. Post on X copies this and opens the Articles
-                composer — X doesn’t prefill title and body via URL.
+                Edit freely. Post on X copies the draft and opens the Articles
+                composer.
               </CardDescription>
             </div>
             {draft?.demo ? <Badge variant="secondary">Demo rewrite</Badge> : null}
@@ -339,8 +337,7 @@ export function RantStudio() {
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            X Articles usually needs a Premium account. Paste the first line as
-            the headline, then the rest as the article.
+            Paste in the Articles editor, then publish on X.
           </p>
           <div className="flex flex-wrap justify-end gap-2">
             <Button
