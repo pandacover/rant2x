@@ -4,19 +4,36 @@
  * by pasting. Tweet intents (`/intent/post?text=`) prefill short posts only.
  */
 export const X_ARTICLES_COMPOSE_URL = "https://x.com/compose/articles";
+export const CLIPBOARD_PREVIEW_CHARS = 280;
 
-export async function copyAndOpenXArticles(text: string): Promise<{
-  copied: boolean;
-  opened: boolean;
-}> {
-  let copied = false;
+export function articlesDestinationHostname(
+  url = X_ARTICLES_COMPOSE_URL
+): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "x.com";
+  }
+}
+
+export function truncateClipboardPreview(
+  text: string,
+  max = CLIPBOARD_PREVIEW_CHARS
+): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) return trimmed;
+  return `${trimmed.slice(0, max).trimEnd()}…`;
+}
+
+export async function copyTextToClipboard(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
-    copied = true;
+    return true;
   } catch {
-    copied = false;
+    return false;
   }
+}
 
-  const popup = window.open(X_ARTICLES_COMPOSE_URL, "_blank", "noopener,noreferrer");
-  return { copied, opened: popup !== null };
+export function openXArticles(): void {
+  window.location.assign(X_ARTICLES_COMPOSE_URL);
 }
