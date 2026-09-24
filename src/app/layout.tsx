@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Rant to X",
   description:
-    "Speak or paste a rant. Turn it into a polished X Article, then post it from the Articles composer.",
+    "Record or upload a rant. Transcribe it, paraphrase lightly, turn it into an X Article, then post it from the Articles composer.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
