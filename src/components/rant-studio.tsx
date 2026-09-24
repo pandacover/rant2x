@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertCircleIcon,
   CopyIcon,
@@ -27,8 +28,9 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useSpeechToText } from "@/hooks/use-speech-to-text";
+import { usePublishDraft } from "@/hooks/use-publish-draft";
 import { formatArticleForClipboard } from "@/lib/article";
-import { copyAndOpenXArticles, X_ARTICLES_COMPOSE_URL } from "@/lib/post-to-x";
+import { savePublishDraft } from "@/lib/publish-draft";
 
 type Draft = {
   title: string;
@@ -37,11 +39,25 @@ type Draft = {
 };
 
 export function RantStudio() {
+  const router = useRouter();
+  const { ready, draft: stored } = usePublishDraft();
   const [rant, setRant] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [rewriting, setRewriting] = useState(false);
   const [rewriteError, setRewriteError] = useState<string | null>(null);
-  const [posting, setPosting] = useState(false);
+  const [appliedStore, setAppliedStore] = useState(false);
+
+  if (ready && !appliedStore) {
+    setAppliedStore(true);
+    if (stored) {
+      setDraft({
+        title: stored.title,
+        body: stored.body,
+        demo: stored.demo ?? false,
+      });
+      if (stored.rant) setRant(stored.rant);
+    }
+  }
 
   const { supported, listening, start, stop } = useSpeechToText(
     rant,
@@ -50,8 +66,7 @@ export function RantStudio() {
   );
 
   const canRewrite = rant.trim().length > 0 && !rewriting;
-  const canPost =
-    Boolean(draft?.title.trim() && draft?.body.trim()) && !posting;
+  const canPost = Boolean(draft?.title.trim() && draft?.body.trim());
   const wordCount = useMemo(
     () => rant.trim().split(/\s+/).filter(Boolean).length,
     [rant]
@@ -121,34 +136,22 @@ export function RantStudio() {
     }
   }
 
-  async function handlePostOnX() {
+  function handlePostOnX() {
     if (!draft || !canPost) return;
-    setPosting(true);
     try {
-      const text = formatArticleForClipboard(draft.title, draft.body);
-      const { copied, opened } = await copyAndOpenXArticles(text);
-
-      if (copied && opened) {
-        toast.success("Paste in the Articles editor, then publish on X.");
-        return;
-      }
-      if (copied && !opened) {
-        toast.message("Article copied. Popup blocked — opening X Articles here.", {
-          duration: 6000,
-        });
-        window.location.assign(X_ARTICLES_COMPOSE_URL);
-        return;
-      }
-      if (!copied && opened) {
-        toast.warning(
-          "X Articles opened, but clipboard was blocked. Use Copy, then paste."
-        );
-        return;
-      }
-      toast.error("Couldn’t copy or open X. Copy the draft, then visit x.com/compose/articles.");
-    } finally {
-      setPosting(false);
+      savePublishDraft({
+        title: draft.title,
+        body: draft.body,
+        rant,
+        demo: draft.demo,
+      });
+    } catch {
+      toast.error(
+        "Couldn’t store the draft for publish. Use Copy, then open X Articles."
+      );
+      return;
     }
+    router.push("/publish");
   }
 
   return (
@@ -162,7 +165,8 @@ export function RantStudio() {
         </h1>
         <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
           Speak (or paste) a rant. We turn it into a polished X Article you can
-          edit, then open X’s Articles editor with the draft on your clipboard.
+          edit. Post on X takes you to one more tap: it copies the article and
+          opens X Articles so you can paste.
         </p>
       </header>
 
@@ -274,8 +278,8 @@ export function RantStudio() {
             <div className="space-y-1">
               <CardTitle>Article draft</CardTitle>
               <CardDescription>
-                Edit freely. Post on X copies the draft and opens the Articles
-                composer.
+                Edit freely. Post on X opens a confirmation page — one more tap
+                copies the article and opens X Articles for paste.
               </CardDescription>
             </div>
             {draft?.demo ? <Badge variant="secondary">Demo rewrite</Badge> : null}
@@ -337,7 +341,8 @@ export function RantStudio() {
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            Paste in the Articles editor, then publish on X.
+            Copy stays on this page. Post on X asks you to copy, then opens
+            Articles.
           </p>
           <div className="flex flex-wrap justify-end gap-2">
             <Button
@@ -356,11 +361,7 @@ export function RantStudio() {
               onClick={handlePostOnX}
               disabled={!canPost}
             >
-              {posting ? (
-                <Loader2Icon className="animate-spin" data-icon="inline-start" />
-              ) : (
-                <ExternalLinkIcon data-icon="inline-start" />
-              )}
+              <ExternalLinkIcon data-icon="inline-start" />
               Post on X
             </Button>
           </div>

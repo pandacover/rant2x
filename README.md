@@ -1,6 +1,6 @@
 # Rant to X
 
-Speak (or paste) a rant. Speech-to-text captures it in the browser. An LLM rewrites it into a polished **X Article** (title + body). You edit the draft, then **Post on X** copies it and opens X’s Articles composer so you can paste once.
+Speak (or paste) a rant. Speech-to-text captures it in the browser. An LLM rewrites it into a polished **X Article** (title + body). You edit the draft, then **Post on X** takes you to a confirmation page. One more tap copies the article and opens X’s Articles composer so you can paste.
 
 No accounts, no database, no X OAuth.
 
@@ -8,14 +8,18 @@ No accounts, no database, no X OAuth.
 
 X does **not** expose a public Articles compose deep link that prefills title and body (no `intent`-style query params for Articles). Tweet intents such as `https://x.com/intent/post?text=` only prefill a short post, which is the wrong shape for a long-form article.
 
-**Post on X** therefore:
+Browsers also block clipboard writes that are not tied to a clear user gesture (especially on mobile, or when `window.open` races a popup blocker). **Post on X** therefore does not copy and redirect in the same click from the studio.
 
-1. Copies `title` + blank line + `body` to the clipboard
-2. Opens [x.com/compose/articles](https://x.com/compose/articles) in a new tab
+1. **Post on X** writes the current title + body to **sessionStorage** (this tab only) and navigates to `/publish`
+2. `/publish` shows destination hostname `x.com`, a clipboard preview, and **Copy & continue**
+3. That click copies `title` + blank line + `body` (`formatArticleForClipboard`) and then goes to [x.com/compose/articles](https://x.com/compose/articles) in the **same tab**
+4. Paste in the Articles editor, then publish on X
 
-Hint in the UI: paste in the Articles editor, then publish on X. X Articles typically requires a Premium account. If the popup is blocked, the app copies anyway and navigates the current tab.
+The draft is **not** put in the URL. sessionStorage is tab-scoped and can hold long articles; if it is missing (new tab, storage blocked, or a cold visit to `/publish`), the page asks you to go back to the studio. There is no query/hash fallback. Returning to the studio in the same tab restores the last title, body, and rant from that snapshot.
 
-A separate **Copy** button copies the same payload without opening X. There are no X developer credentials and no OAuth.
+If the clipboard write fails on **Copy & continue**, the full article stays on the page so you can copy it manually, and **Open Articles** still goes to the composer.
+
+A separate **Copy** button on the studio copies the same payload without leaving the page. There are no X developer credentials and no OAuth. X Articles typically requires a Premium account.
 
 ## Run locally
 
