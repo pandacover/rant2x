@@ -570,7 +570,7 @@ export function RantStudio() {
             </>
           ) : null}
         </CardContent>
-        <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardFooter className="flex-col items-stretch gap-3">
           <p className="text-xs text-muted-foreground">
             Copy stays on this page. Post on X asks you to copy, then opens
             Articles.

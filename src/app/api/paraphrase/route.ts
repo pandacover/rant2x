@@ -18,11 +18,6 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const apiKey = getOpenRouterApiKey();
-  if (!apiKey) {
-    return Response.json({ error: missingOpenRouterKeyMessage() }, { status: 503 });
-  }
-
   let json: unknown;
   try {
     json = await request.json();
@@ -39,6 +34,11 @@ export async function POST(request: Request) {
       { error: parsed.error.issues[0]?.message ?? "Invalid draft text." },
       { status: 400 }
     );
+  }
+
+  const apiKey = getOpenRouterApiKey();
+  if (!apiKey) {
+    return Response.json({ error: missingOpenRouterKeyMessage() }, { status: 503 });
   }
 
   try {
